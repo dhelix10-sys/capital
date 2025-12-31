@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수도 맞추기 퀴즈</title>
+    <!-- Tailwind CSS (디자인을 위해 유지하되, 차단될 경우를 대비해 기본 스타일 추가) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; font-family: sans-serif; background-color: #fdfbfb; }
+        .game-card { 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            padding: 30px; 
+            max-width: 400px; 
+            width: 90%; 
+            text-align: center;
+        }
+        .option-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            background: #f9f9f9;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+        .option-button:hover { border-color: #a5b4fc; background: #eef2ff; }
+        .progress-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+        .progress-fill { height: 100%; background: #93c5fd; width: 0%; transition: 0.3s; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+
+    <div id="game-app" class="game-card">
+        <!-- 자바스크립트가 실행되지 않을 때 보일 메시지 -->
+        <p>게임을 불러오고 있습니다... <br>잠시만 기다려주세요.</p>
+    </div>
+
+    <script>
+        const data = [
+            { c: "대한민국", a: "서울" }, { c: "일본", a: "도쿄" }, { c: "중국", a: "베이징" },
+            { c: "미국", a: "워싱턴 D.C." }, { c: "프랑스", a: "파리" }, { c: "영국", a: "런던" },
+            { c: "독일", a: "베를린" }, { c: "이탈리아", a: "로마" }, { c: "캐나다", a: "오타와" },
+            { c: "호주", a: "캔버라" }
+        ];
+
+        let current = 0;
+        let score = 0;
+        let shuffled = [];
+
+        function init() {
+            shuffled = [...data].sort(() => Math.random() - 0.5);
+            showStart();
+        }
+
+        function showStart() {
+            document.getElementById('game-app').innerHTML = `
+                <h1 style="color:#6366f1; font-size: 24px; margin-bottom: 10px;">수도 맞추기 퀴즈</h1>
+                <p style="color:#94a3b8; font-size: 14px; margin-bottom: 30px;">재미있는 세계 여행을 시작해요!</p>
+                <div style="font-size: 50px; margin-bottom: 30px;">🌍</div>
+                <button onclick="play()" style="background:#818cf8; color:white; border:none; padding:15px 40px; border-radius:15px; font-weight:bold; cursor:pointer; width:100%;">시작하기</button>
+            `;
+        }
+
+        function play() {
+            if (current >= shuffled.length) {
+                showResult();
+                return;
+            }
+            const item = shuffled[current];
+            const progress = (current / shuffled.length) * 100;
+
+            // 보기 섞기
+            let options = [item.a];
+            while(options.length < 4) {
+                let r = data[Math.floor(Math.random()*data.length)].a;
+                if(!options.includes(r)) options.push(r);
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            document.getElementById('game-app').innerHTML = `
+                <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+                <p style="color:#cbd5e1; font-size:12px; font-weight:bold; margin-bottom:10px;">어디가 수도일까요?</p>
+                <h2 style="font-size:32px; font-weight:900; color:#475569; margin-bottom:30px;">${item.c}</h2>
+                <div>
+                    ${options.map(o => `<button class="option-button" onclick="check('${o}')">${o}</button>`).join('')}
+                </div>
+            `;
+        }
+
+        window.check = function(choice) {
+            const correct = shuffled[current].a;
+            if(choice === correct) score++;
+            
+            // 시각적 피드백은 생략하고 바로 다음으로 넘김 (오류 최소화)
+            current++;
+            play();
+        };
+
+        function showResult() {
+            const percent = Math.round((score/shuffled.length)*100);
+            document.getElementById('game-app').innerHTML = `
+                <h1 style="font-size:24px; margin-bottom:20px;">결과 발표</h1>
+                <div style="background:#f8fafc; padding:30px; border-radius:20px; margin-bottom:20px;">
+                    <div style="font-size:48px; font-weight:900; color:#818cf8;">${percent}점</div>
+                    <p style="color:#94a3b8;">${shuffled.length}문제 중 ${score}개 정답</p>
+                </div>
+                <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; width:100%;">다시 하기</button>
+            `;
+        }
+
+        // 실행
+        init();
+    </script>
+</body>
+</html>
